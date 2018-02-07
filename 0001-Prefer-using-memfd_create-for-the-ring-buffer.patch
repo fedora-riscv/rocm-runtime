@@ -1,0 +1,155 @@
+From 3c412229adcc073e9a378dad94701f2e8adc3f92 Mon Sep 17 00:00:00 2001
+From: Tom Stellard <tstellar@redhat.com>
+Date: Thu, 26 Oct 2017 20:36:28 +0000
+Subject: [PATCH] Prefer using memfd_create() for the ring buffer
+
+We were using /dev/shm, but this won't work on systems that
+either don't have /dev/shm or have mounted it with noexec, because
+for everything other than kaveri we map the ring buffer with PROT_EXEC.
+
+memfd_create() is Linux specific and was added in Linux 3.17, so we
+will fallback to using /dev/shm on systems where memfd_create() is
+not available.
+---
+ src/CMakeLists.txt                 |  7 ++++
+ src/core/inc/amd_aql_queue.h       |  3 ++
+ src/core/runtime/amd_aql_queue.cpp | 68 ++++++++++++++++++++++++++------------
+ 3 files changed, 57 insertions(+), 21 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index d9a98c9..0db0493 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -58,12 +58,19 @@ include ( hsa_common )
+ ## Find LibElf
+ find_package(LibElf REQUIRED)
+ 
++## Check for memfd_create syscall
++include(CheckSymbolExists)
++CHECK_SYMBOL_EXISTS ( "__NR_memfd_create" "sys/syscall.h" HAVE_MEMFD_CREATE )
++
+ ## Compiler preproc definitions.
+ add_definitions ( -D__linux__  )
+ add_definitions ( -DHSA_EXPORT=1 )
+ add_definitions ( -DHSA_EXPORT_FINALIZER=1 )
+ add_definitions ( -DHSA_EXPORT_IMAGES=1 )
+ add_definitions ( -D HSA_DEPRECATED= )
++if ( HAVE_MEMFD_CREATE )
++    add_definitions ( -DHAVE_MEMFD_CREATE )
++endif()
+ 
+ ## Get the package version. The defaults to 1.0.0.
+ get_version ( "1.0.0" )
+diff --git a/src/core/inc/amd_aql_queue.h b/src/core/inc/amd_aql_queue.h
+index 1932eaa..ba859a6 100644
+--- a/src/core/inc/amd_aql_queue.h
++++ b/src/core/inc/amd_aql_queue.h
+@@ -349,6 +349,9 @@ class AqlQueue : public core::Queue, public core::Signal {
+   uint32_t ComputeRingBufferMinPkts();
+   uint32_t ComputeRingBufferMaxPkts();
+ 
++  void CloseRingBufferFD(const char *ring_buf_shm_path, int fd) const;
++  int CreateRingBufferFD(const char *ring_buf_shm_path,
++                         uint32_t ring_buf_phys_size_bytes) const;
+   // (De)allocates and (de)registers ring_buf_.
+   void AllocRegisteredRingBuffer(uint32_t queue_size_pkts);
+   void FreeRegisteredRingBuffer();
+diff --git a/src/core/runtime/amd_aql_queue.cpp b/src/core/runtime/amd_aql_queue.cpp
+index 9d680ac..a22bb59 100644
+--- a/src/core/runtime/amd_aql_queue.cpp
++++ b/src/core/runtime/amd_aql_queue.cpp
+@@ -479,6 +479,43 @@ uint32_t AqlQueue::ComputeRingBufferMaxPkts() {
+   return uint32_t(max_bytes / sizeof(core::AqlPacket));
+ }
+ 
++void AqlQueue::CloseRingBufferFD(const char *ring_buf_shm_path, int fd) const {
++#if !defined(HAVE_MEMFD_CREATE)
++  shm_unlink(ring_buf_shm_path);
++#endif
++  close(fd);
++}
++
++int AqlQueue::CreateRingBufferFD(const char *ring_buf_shm_path,
++                                 uint32_t ring_buf_phys_size_bytes) const {
++
++  int fd;
++#ifdef HAVE_MEMFD_CREATE
++  fd = syscall(__NR_memfd_create, ring_buf_shm_path, 0);
++
++  if (fd == -1)
++    return -1;
++
++  if (ftruncate(fd, ring_buf_phys_size_bytes) == -1) {
++    CloseRingBufferFD(ring_buf_shm_path, fd);
++    return -1;
++  }
++#else
++  fd = shm_open(ring_buf_shm_path, O_CREAT | O_RDWR | O_EXCL,
++                S_IRUSR | S_IWUSR);
++
++  if (fd == -1)
++    return -1;
++
++  if (posix_fallocate(fd, 0, ring_buf_phys_size_bytes) != 0)
++    CloseRingBufferFD(ring_buf_shm_path, fd);
++    return -1;
++  }
++#endif
++
++  return fd;
++}
++
+ void AqlQueue::AllocRegisteredRingBuffer(uint32_t queue_size_pkts) {
+   if (agent_->profile() == HSA_PROFILE_FULL) {
+     // Compute the physical and virtual size of the queue.
+@@ -495,15 +532,13 @@ void AqlQueue::AllocRegisteredRingBuffer(uint32_t queue_size_pkts) {
+     int ring_buf_shm_fd = -1;
+     void* reserve_va = NULL;
+ 
+-    do {
+-      // Create a shared memory object to back the ring buffer.
+-      ring_buf_shm_fd = shm_open(ring_buf_shm_path, O_CREAT | O_RDWR | O_EXCL,
+-                                 S_IRUSR | S_IWUSR);
+-      if (ring_buf_shm_fd == -1) {
+-        break;
+-      }
+-      if (posix_fallocate(ring_buf_shm_fd, 0, ring_buf_phys_size_bytes) != 0)
+-        break;
++    ring_buf_shm_fd = CreateRingBufferFD(ring_buf_shm_path,
++                                         ring_buf_phys_size_bytes);
++
++    // TODO: Better error handling.
++    if (ring_buf_shm_fd == -1) {
++      return;
++    }
+ 
+       // Reserve a VA range twice the size of the physical backing store.
+       reserve_va = mmap(NULL, ring_buf_alloc_bytes_, PROT_NONE,
+@@ -539,21 +574,12 @@ void AqlQueue::AllocRegisteredRingBuffer(uint32_t queue_size_pkts) {
+         assert(ring_buf_upper_half != MAP_FAILED && "mmap failed");
+       }
+ 
+-      // Release explicit reference to shared memory object.
+-      shm_unlink(ring_buf_shm_path);
+-      close(ring_buf_shm_fd);
+-
+       // Successfully created mapping.
+       ring_buf_ = ring_buf_lower_half;
+-      return;
+-    } while (false);
+ 
+-    // Resource cleanup on failure.
+-    if (reserve_va) munmap(reserve_va, ring_buf_alloc_bytes_);
+-    if (ring_buf_shm_fd != -1) {
+-      shm_unlink(ring_buf_shm_path);
+-      close(ring_buf_shm_fd);
+-    }
++      // Release explicit reference to shared memory object.
++      CloseRingBufferFD(ring_buf_shm_path, ring_buf_shm_fd);
++      return;
+ #endif
+ #ifdef _WIN32
+     HANDLE ring_buf_mapping = INVALID_HANDLE_VALUE;
+-- 
+2.13.6
+

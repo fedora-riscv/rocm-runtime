@@ -1,0 +1,27 @@
+From 34076e8fd05abcbd6fa76d5aeb917b10f1a2420d Mon Sep 17 00:00:00 2001
+From: Tom Stellard <tstellar@redhat.com>
+Date: Thu, 1 Feb 2018 16:09:42 -0800
+Subject: [PATCH] Fix build with gcc 8
+
+---
+ src/core/runtime/runtime.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/runtime/runtime.cpp b/src/core/runtime/runtime.cpp
+index f65d00a..7e39b69 100644
+--- a/src/core/runtime/runtime.cpp
++++ b/src/core/runtime/runtime.cpp
+@@ -255,8 +255,8 @@ void Runtime::SetLinkCount(size_t num_link) {
+   const size_t last_index = GetIndexLinkInfo(0, num_link);
+   link_matrix_.resize(last_index);
+ 
+-  memset(&link_matrix_[0], 0,
+-         link_matrix_.size() * sizeof(hsa_amd_memory_pool_link_info_t));
++  memset((void*)link_matrix_.data(), 0,
++         link_matrix_.size() * sizeof(LinkInfo));
+ }
+ 
+ void Runtime::RegisterLinkInfo(uint32_t node_id_from, uint32_t node_id_to,
+-- 
+2.13.6
+
