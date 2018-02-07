@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	1.6.1
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -9,6 +9,8 @@ Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/roc-%{version
 Patch0:		0001-Fix-Werror-format-overflow-warning.patch
 Patch1:		0001-Prefer-using-memfd_create-for-the-ring-buffer.patch
 Patch2:		0001-Fix-build-with-gcc-8.patch
+
+ExclusiveArch: x86_64
 
 BuildRequires:	cmake
 BuildRequires:	elfutils-libelf-devel
@@ -67,6 +69,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Wed Feb 07 2018 Tom Stellard <tstellar@redhat.com> - 1.6.1-6
+- Add ExclusiveArch: x86_64
+
 * Tue Feb 06 2018 Tom Stellard <tstellar@redhat.com> - 1.6.1-5
 - Take ownership of /usr/include/hsa
 
