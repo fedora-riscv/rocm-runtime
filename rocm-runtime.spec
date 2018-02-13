@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	1.6.1
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -10,7 +10,7 @@ Patch0:		0001-Fix-Werror-format-overflow-warning.patch
 Patch1:		0001-Prefer-using-memfd_create-for-the-ring-buffer.patch
 Patch2:		0001-Fix-build-with-gcc-8.patch
 
-ExclusiveArch: x86_64
+ExclusiveArch: x86_64 aarch64
 
 BuildRequires:	cmake
 BuildRequires:	elfutils-libelf-devel
@@ -69,6 +69,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Tue Feb 13 2018 Tom Stellard <tstellar@redhat.com> - 1.6.1-7
+- Build for aarch64
+
 * Wed Feb 07 2018 Tom Stellard <tstellar@redhat.com> - 1.6.1-6
 - Add ExclusiveArch: x86_64
 
