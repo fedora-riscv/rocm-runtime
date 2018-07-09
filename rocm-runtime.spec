@@ -12,6 +12,8 @@ Patch2:		0001-Fix-build-with-gcc-8.patch
 
 ExclusiveArch: x86_64 aarch64
 
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
 BuildRequires:	cmake
 BuildRequires:	elfutils-libelf-devel
 BuildRequires:	hsakmt-devel
