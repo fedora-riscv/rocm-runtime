@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	1.6.1
-Release:	7%{?dist}
+Release:	8%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -71,6 +71,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.6.1-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Tue Feb 13 2018 Tom Stellard <tstellar@redhat.com> - 1.6.1-7
 - Build for aarch64
 
