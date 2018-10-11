@@ -1,14 +1,11 @@
 Name:		rocm-runtime
-Version:	1.6.1
-Release:	8%{?dist}
+Version:	2.0.0
+Release:	1%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
 URL:		https://github.com/RadeonOpenCompute/ROCm
 Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/roc-%{version}.tar.gz
-Patch0:		0001-Fix-Werror-format-overflow-warning.patch
-Patch1:		0001-Prefer-using-memfd_create-for-the-ring-buffer.patch
-Patch2:		0001-Fix-build-with-gcc-8.patch
 
 ExclusiveArch: x86_64 aarch64
 
@@ -24,7 +21,7 @@ ROCm Runtime Library
 %package devel
 Summary: ROCm Runtime development files
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: hsakmt-devel
+Requires: hsakmt-devel >= 1.0.6-7.rocm%{version}
 
 %description devel
 ROCm Runtime development files
@@ -71,6 +68,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Mon Jan 14 2019 Tom Stellard <tstellar@redhat.com> - 2.0.0-1
+- ROCm 2.0.0 Release
+
 * Sat Jul 14 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.6.1-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
