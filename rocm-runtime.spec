@@ -54,8 +54,7 @@ rm %{buildroot}/usr/lib/libhsa-runtime64.so
 mv %{buildroot}{/usr/hsa/lib,%{_libdir}}
 mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+%ldconfig_scriptlets
 
 %files
 %doc README.md
