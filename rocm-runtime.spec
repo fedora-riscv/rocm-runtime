@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	2.0.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -67,6 +67,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.0.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
 * Mon Jan 14 2019 Tom Stellard <tstellar@redhat.com> - 2.0.0-1
 - ROCm 2.0.0 Release
 
