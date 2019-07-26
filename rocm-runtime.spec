@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	2.0.0
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -69,6 +69,9 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.0.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Thu Mar 21 2019 Tom Stellard <tstellar@redhat.com> - 2.0.0-3
 - Add endian detection for AArch64
 
