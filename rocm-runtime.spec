@@ -1,13 +1,11 @@
 Name:		rocm-runtime
-Version:	2.0.0
-Release:	5%{?dist}
+Version:	3.5.0
+Release:	1%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
 URL:		https://github.com/RadeonOpenCompute/ROCm
-Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/roc-%{version}.tar.gz
-
-Patch0:		0001-Add-endian-detection-for-AArch64.patch
+Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-%{version}.tar.gz
 
 ExclusiveArch: x86_64 aarch64
 
@@ -23,14 +21,14 @@ ROCm Runtime Library
 %package devel
 Summary: ROCm Runtime development files
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: hsakmt-devel >= 1.0.6-7.rocm%{version}
+Requires: hsakmt(rocm) = %{version}
 
 %description devel
 ROCm Runtime development files
 
 
 %prep
-%autosetup -n  ROCR-Runtime-roc-%{version} -p1
+%autosetup -n  ROCR-Runtime-rocm-%{version} -p1
 
 # Remove the executable bit from a header
 chmod a-x src/inc/hsa_ext_amd.h
@@ -51,7 +49,7 @@ cd build
 # /usr/.  Remove the symlinks and move the files into /usr/
 
 rm %{buildroot}%{_includedir}/hsa
-rm %{buildroot}/usr/lib/libhsa-runtime64.so
+rm %{buildroot}/usr/lib/libhsa-runtime64.so*
 
 mv %{buildroot}{/usr/hsa/lib,%{_libdir}}
 mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
@@ -62,13 +60,16 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %doc README.md
 %license LICENSE.txt
 %{_libdir}/libhsa-runtime64.so.1
-%{_libdir}/libhsa-runtime64.so.1.0.0
+%{_libdir}/libhsa-runtime64.so.1.1.9
 
 %files devel
 %{_includedir}/hsa/
 %{_libdir}/libhsa-runtime64.so
 
 %changelog
+* Wed Jul 15 2020 Tom Stellard <tstellar@redhat.com> - 3.5.0-1
+- ROCm 3.5.0 Release
+
 * Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 2.0.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
