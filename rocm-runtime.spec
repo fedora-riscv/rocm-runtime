@@ -1,11 +1,14 @@
 Name:		rocm-runtime
-Version:	3.5.0
-Release:	3%{?dist}
+Version:	3.9.0
+Release:	0%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
 URL:		https://github.com/RadeonOpenCompute/ROCm
 Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-%{version}.tar.gz
+
+Patch0:		0001-fix-CMake-target-paths.patch
+Patch1:		0002-fix-link-time-ordering-condition.patch
 
 ExclusiveArch: x86_64 aarch64
 
@@ -37,22 +40,18 @@ chmod a-x src/inc/hsa_ext_amd.h
 mkdir build
 cd build
 
-%cmake ../src -DCMAKE_BUILD_TYPE=RelWithDebInfo
-%make_build
+# TODO: Image support needs the ROCM-device-libs as dependencies
+%cmake ../src -DIMAGE_SUPPORT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo
+%cmake_build
 
 
 %install
 cd build
-%make_install
+%cmake_install
 
-# All files are installed to the prefix /usr/hsa with symlinks back to
-# /usr/.  Remove the symlinks and move the files into /usr/
+rm -rf %{buildroot}/usr/hsa
 
-rm %{buildroot}%{_includedir}/hsa
-rm %{buildroot}/usr/lib/libhsa-runtime64.so*
-
-mv %{buildroot}{/usr/hsa/lib,%{_libdir}}
-mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
+mv %{buildroot}{/usr/lib/cmake,%{_libdir}}
 
 %ldconfig_scriptlets
 
@@ -60,13 +59,17 @@ mv %{buildroot}{/usr/hsa/include/hsa,%{_includedir}}
 %doc README.md
 %license LICENSE.txt
 %{_libdir}/libhsa-runtime64.so.1
-%{_libdir}/libhsa-runtime64.so.1.1.9
+%{_libdir}/libhsa-runtime64.so.1.2.0
 
 %files devel
 %{_includedir}/hsa/
 %{_libdir}/libhsa-runtime64.so
+%{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Thu Nov 26 2020 Philipp Knechtges <philipp-dev@knechtges.com> - 3.9.0-0
+- Version 3.9.0
+
 * Sat Aug 01 2020 Fedora Release Engineering <releng@fedoraproject.org> - 3.5.0-3
 - Second attempt - Rebuilt for
   https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild

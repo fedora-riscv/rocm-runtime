@@ -1,0 +1,27 @@
+From 9a998f4a8c2de3e469d08642b107999d6fd0ac06 Mon Sep 17 00:00:00 2001
+From: Philipp Knechtges <philipp-dev@knechtges.com>
+Date: Mon, 23 Nov 2020 22:38:44 +0100
+Subject: [PATCH 1/2] fix CMake target paths
+
+---
+ src/CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 373c2e2..4a2ef81 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -306,8 +306,8 @@ endif()
+ # Installs binaries and exports the library usage data to ${HSAKMT_TARGET}Targets
+ # TODO: Fix me for flat directory layout.  Should be ${CMAKE_INSTALL_LIBDIR}
+ install ( TARGETS ${CORE_RUNTIME_TARGET} EXPORT ${CORE_RUNTIME_NAME}Targets 
+-  ARCHIVE DESTINATION lib COMPONENT binary
+-  LIBRARY DESTINATION lib COMPONENT binary )
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT binary
++  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT binary )
+ 
+ # Install license
+ #install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT binary )
+-- 
+2.28.0
+
