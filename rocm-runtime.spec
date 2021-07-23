@@ -1,6 +1,6 @@
 Name:		rocm-runtime
 Version:	3.9.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	ROCm Runtime Library
 
 License:	NCSA
@@ -67,6 +67,9 @@ mv %{buildroot}{/usr/lib/cmake,%{_libdir}}
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Fri Jul 23 2021 Fedora Release Engineering <releng@fedoraproject.org> - 3.9.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
+
 * Wed Jan 27 2021 Fedora Release Engineering <releng@fedoraproject.org> - 3.9.0-1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 
