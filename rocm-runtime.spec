@@ -1,13 +1,14 @@
 Name:       rocm-runtime
-Version:    3.9.0
-Release:    3%{?dist}
+Version:    5.0.0
+Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
-URL:        https://github.com/RadeonOpenCompute/ROCm
-Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-%{version}.tar.gz
+URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
+Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
-Patch0:     0001-fix-CMake-target-paths.patch
+#https://github.com/RadeonOpenCompute/ROCR-Runtime/pull/129
+Patch0:     0001-Use-CMAKE_INSTALL_LIBDIR.patch
 Patch1:     0002-fix-link-time-ordering-condition.patch
 
 ExclusiveArch:  x86_64 aarch64
@@ -19,7 +20,12 @@ BuildRequires:  elfutils-libelf-devel
 BuildRequires:  hsakmt-devel
 
 %description
-ROCm Runtime Library
+The ROCm Runtime Library is is a thin, user-mode API that exposes the
+necessary interfaces to access and interact with graphics hardware driven by
+the AMDGPU driver set and the AMDKFD kernel driver. Together they enable
+programmers to directly harness the power of AMD discrete graphics devices by
+allowing host applications to launch compute kernels directly to the graphics
+hardware.
 
 %package devel
 Summary: ROCm Runtime development files
@@ -33,14 +39,10 @@ ROCm Runtime development files
 %prep
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
 
-# Remove the executable bit from a header
-chmod a-x src/inc/hsa_ext_amd.h
-
 %build
 mkdir build
 cd build
 
-# TODO: Image support needs the ROCM-device-libs as dependencies
 %cmake ../src -DIMAGE_SUPPORT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo
 %cmake_build
 
@@ -49,9 +51,10 @@ cd build
 cd build
 %cmake_install
 
-rm -rf %{buildroot}/usr/hsa
+# We install this via license macro instead:
+rm %{buildroot}%{_docdir}/hsa-runtime64/LICENSE.md
 
-mv %{buildroot}{/usr/lib/cmake,%{_libdir}}
+rm -rf %{buildroot}/usr/hsa
 
 %ldconfig_scriptlets
 
@@ -59,7 +62,7 @@ mv %{buildroot}{/usr/lib/cmake,%{_libdir}}
 %doc README.md
 %license LICENSE.txt
 %{_libdir}/libhsa-runtime64.so.1
-%{_libdir}/libhsa-runtime64.so.1.2.0
+%{_libdir}/libhsa-runtime64.so.1.5.0
 
 %files devel
 %{_includedir}/hsa/
@@ -67,6 +70,10 @@ mv %{buildroot}{/usr/lib/cmake,%{_libdir}}
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Fri Feb 11 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0.0-1
+- Update to ROCm version 5.0.0
+- General improvements to spec file
+
 * Fri Jan 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 3.9.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
 
