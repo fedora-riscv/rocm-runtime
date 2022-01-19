@@ -1,22 +1,22 @@
-Name:		rocm-runtime
-Version:	3.9.0
-Release:	3%{?dist}
-Summary:	ROCm Runtime Library
+Name:       rocm-runtime
+Version:    3.9.0
+Release:    3%{?dist}
+Summary:    ROCm Runtime Library
 
-License:	NCSA
-URL:		https://github.com/RadeonOpenCompute/ROCm
-Source0:	https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-%{version}.tar.gz
+License:    NCSA
+URL:        https://github.com/RadeonOpenCompute/ROCm
+Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/rocm-%{version}.tar.gz
 
-Patch0:		0001-fix-CMake-target-paths.patch
-Patch1:		0002-fix-link-time-ordering-condition.patch
+Patch0:     0001-fix-CMake-target-paths.patch
+Patch1:     0002-fix-link-time-ordering-condition.patch
 
-ExclusiveArch: x86_64 aarch64
+ExclusiveArch:  x86_64 aarch64
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
-BuildRequires:	cmake
-BuildRequires:	elfutils-libelf-devel
-BuildRequires:	hsakmt-devel
+BuildRequires:  cmake
+BuildRequires:  elfutils-libelf-devel
+BuildRequires:  hsakmt-devel
 
 %description
 ROCm Runtime Library
@@ -31,7 +31,7 @@ ROCm Runtime development files
 
 
 %prep
-%autosetup -n  ROCR-Runtime-rocm-%{version} -p1
+%autosetup -n ROCR-Runtime-rocm-%{version} -p1
 
 # Remove the executable bit from a header
 chmod a-x src/inc/hsa_ext_amd.h
