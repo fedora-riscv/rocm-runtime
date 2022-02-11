@@ -1,6 +1,11 @@
+#Image support is x86 only
+%ifarch x86_64
+%global enableimage 1
+%endif
+
 Name:       rocm-runtime
 Version:    5.0.0
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -13,11 +18,17 @@ Patch1:     0002-fix-link-time-ordering-condition.patch
 
 ExclusiveArch:  x86_64 aarch64
 
-BuildRequires:  gcc
-BuildRequires:  gcc-c++
+BuildRequires:  clang
 BuildRequires:  cmake
 BuildRequires:  elfutils-libelf-devel
 BuildRequires:  hsakmt-devel
+%if 0%{?enableimage}
+BuildRequires:  clang-devel
+BuildRequires:  lld-devel
+BuildRequires:  llvm-devel
+BuildRequires:  rocm-device-libs
+BuildRequires:  vim-common
+%endif
 
 %description
 The ROCm Runtime Library is is a thin, user-mode API that exposes the
@@ -43,7 +54,9 @@ ROCm Runtime development files
 mkdir build
 cd build
 
-%cmake ../src -DIMAGE_SUPPORT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo
+%cmake ../src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    %{?!enableimage:-DIMAGE_SUPPORT=OFF} \
+    -DBITCODE_DIR="%{_libdir}/amdgcn/bitcode"
 %cmake_build
 
 
@@ -70,6 +83,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Tue Feb 15 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0.0-2
+- Enable image support for x86
+
 * Fri Feb 11 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0.0-1
 - Update to ROCm version 5.0.0
 - General improvements to spec file
