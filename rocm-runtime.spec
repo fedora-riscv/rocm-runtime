@@ -4,8 +4,8 @@
 %endif
 
 Name:       rocm-runtime
-Version:    5.0.0
-Release:    2%{?dist}
+Version:    5.1.0
+Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -50,17 +50,13 @@ ROCm Runtime development files
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
 
 %build
-mkdir build
-cd build
-
-%cmake ../src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+%cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     %{?!enableimage:-DIMAGE_SUPPORT=OFF} \
     -DBITCODE_DIR="%{_libdir}/amdgcn/bitcode"
 %cmake_build
 
 
 %install
-cd build
 %cmake_install
 
 # We install this via license macro instead:
@@ -82,6 +78,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Thu Mar 31 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.0-1
+- Update to ROCm version 5.1.0
+
 * Tue Feb 15 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0.0-2
 - Enable image support for x86
 
