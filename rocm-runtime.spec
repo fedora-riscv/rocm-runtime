@@ -5,7 +5,7 @@
 
 Name:       rocm-runtime
 Version:    5.1.0
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -16,7 +16,7 @@ Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/
 Patch0:     0001-Use-CMAKE_INSTALL_LIBDIR.patch
 Patch1:     0002-fix-link-time-ordering-condition.patch
 
-ExclusiveArch:  x86_64 aarch64
+ExclusiveArch:  x86_64 aarch64 ppc64le
 
 BuildRequires:  clang
 BuildRequires:  cmake
@@ -78,6 +78,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Tue Apr 05 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.0-2
+- Enable ppc64le
+
 * Thu Mar 31 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.0-1
 - Update to ROCm version 5.1.0
 
