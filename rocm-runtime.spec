@@ -4,8 +4,8 @@
 %endif
 
 Name:       rocm-runtime
-Version:    5.1.0
-Release:    2%{?dist}
+Version:    5.1.1
+Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -78,6 +78,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Sat Apr 09 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.1-1
+- Update to ROCm version 5.1.1
+
 * Tue Apr 05 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.0-2
 - Enable ppc64le
 
