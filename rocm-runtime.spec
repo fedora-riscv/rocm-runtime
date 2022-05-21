@@ -40,7 +40,8 @@ applications to launch compute kernels directly to the graphics hardware.
 %package devel
 Summary: ROCm Runtime development files
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: hsakmt(rocm) = %{version}
+Requires: hsakmt(rocm) >= %(v=%{version};echo ${v%%.*}.0)
+Requires: hsakmt(rocm) <= %{version}
 
 %description devel
 ROCm Runtime development files
