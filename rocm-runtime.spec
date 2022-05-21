@@ -4,7 +4,7 @@
 %endif
 
 Name:       rocm-runtime
-Version:    5.1.1
+Version:    5.1.3
 Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
@@ -79,6 +79,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Fri May 20 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.3-1
+- Update to ROCm version 5.1.3
+
 * Sat Apr 09 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.1-1
 - Update to ROCm version 5.1.1
 
