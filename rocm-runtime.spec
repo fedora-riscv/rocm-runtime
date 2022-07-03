@@ -2,9 +2,12 @@
 %ifarch x86_64
 %global enableimage 1
 %endif
+%global rocm_release 5.2
+%global rocm_patch 0
+%global rocm_version %{rocm_release}.%{rocm_patch}
 
 Name:       rocm-runtime
-Version:    5.1.3
+Version:    %{rocm_version}
 Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
@@ -12,8 +15,6 @@ License:    NCSA
 URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
 Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
-#https://github.com/RadeonOpenCompute/ROCR-Runtime/pull/129
-Patch0:     0001-Use-CMAKE_INSTALL_LIBDIR.patch
 Patch1:     0002-fix-link-time-ordering-condition.patch
 
 ExclusiveArch:  x86_64 aarch64 ppc64le
@@ -22,6 +23,7 @@ BuildRequires:  clang
 BuildRequires:  cmake
 BuildRequires:  elfutils-libelf-devel
 BuildRequires:  hsakmt-devel
+BuildRequires:  hsakmt(rocm) = %{rocm_release}
 %if 0%{?enableimage}
 BuildRequires:  clang-devel
 BuildRequires:  lld-devel
@@ -40,8 +42,7 @@ applications to launch compute kernels directly to the graphics hardware.
 %package devel
 Summary: ROCm Runtime development files
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: hsakmt(rocm) >= %(v=%{version};echo ${v%%.*}.0)
-Requires: hsakmt(rocm) <= %{version}
+Requires: hsakmt(rocm) = %{rocm_release}
 
 %description devel
 ROCm Runtime development files
@@ -52,6 +53,7 @@ ROCm Runtime development files
 
 %build
 %cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_INSTALL_LIBDIR=%{_lib} \
     %{?!enableimage:-DIMAGE_SUPPORT=OFF} \
     -DBITCODE_DIR="%{_libdir}/amdgcn/bitcode"
 %cmake_build
@@ -79,6 +81,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Sun Jul 03 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.2.0-1
+- Update to 5.2.0
+
 * Fri May 20 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.1.3-1
 - Update to ROCm version 5.1.3
 
