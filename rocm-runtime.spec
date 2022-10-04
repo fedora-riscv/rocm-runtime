@@ -2,13 +2,13 @@
 %ifarch x86_64
 %global enableimage 1
 %endif
-%global rocm_release 5.2
-%global rocm_patch 1
+%global rocm_release 5.3
+%global rocm_patch 0
 %global rocm_version %{rocm_release}.%{rocm_patch}
 
 Name:       rocm-runtime
 Version:    %{rocm_version}
-Release:    2%{?dist}
+Release:    1%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -24,6 +24,7 @@ BuildRequires:  cmake
 BuildRequires:  elfutils-libelf-devel
 BuildRequires:  hsakmt-devel
 BuildRequires:  hsakmt(rocm) = %{rocm_release}
+BuildRequires:  libdrm-devel
 %if 0%{?enableimage}
 BuildRequires:  clang-devel
 BuildRequires:  lld-devel
@@ -50,12 +51,17 @@ ROCm Runtime development files
 
 %prep
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
+%if 0%{?enableimage}
+#FIXME: rocm-device-libs cannot be found due to fedora changing install location
+sed -i "s|\({CLANG_ARG_LIST}\)|\1 --hip-device-lib-path=%{_libdir}/amdgcn/bitcode|" \
+	src/image/blit_src/CMakeLists.txt \
+	src/core/runtime/trap_handler/CMakeLists.txt
+%endif
 
 %build
 %cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_LIBDIR=%{_lib} \
-    %{?!enableimage:-DIMAGE_SUPPORT=OFF} \
-    -DBITCODE_DIR="%{_libdir}/amdgcn/bitcode"
+    %{?!enableimage:-DIMAGE_SUPPORT=OFF}
 %cmake_build
 
 
@@ -73,7 +79,7 @@ rm -rf %{buildroot}/usr/hsa
 %doc README.md
 %license LICENSE.txt
 %{_libdir}/libhsa-runtime64.so.1
-%{_libdir}/libhsa-runtime64.so.1.5.0
+%{_libdir}/libhsa-runtime64.so.1.7.0
 
 %files devel
 %{_includedir}/hsa/
@@ -81,6 +87,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Tue Oct 04 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.3.0-1
+- Update to 5.3.0
+
 * Thu Sep 15 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.2.1-2
 - Rebuild against llvm 15
 
