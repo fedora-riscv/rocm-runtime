@@ -19,19 +19,17 @@ Patch1:     0002-fix-link-time-ordering-condition.patch
 
 ExclusiveArch:  x86_64 aarch64 ppc64le
 
-BuildRequires:  clang
+BuildRequires:  clang-devel
 BuildRequires:  cmake
 BuildRequires:  elfutils-libelf-devel
 BuildRequires:  hsakmt-devel
 BuildRequires:  hsakmt(rocm) = %{rocm_release}
 BuildRequires:  libdrm-devel
-%if 0%{?enableimage}
-BuildRequires:  clang-devel
-BuildRequires:  lld-devel
+BuildRequires:  libffi-devel
+BuildRequires:  lld
 BuildRequires:  llvm-devel
 BuildRequires:  rocm-device-libs
 BuildRequires:  vim-common
-%endif
 
 %description
 The ROCm Runtime Library is a thin, user-mode API that exposes the necessary
@@ -51,12 +49,10 @@ ROCm Runtime development files
 
 %prep
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
-%if 0%{?enableimage}
 #FIXME: rocm-device-libs cannot be found due to fedora changing install location
 sed -i "s|\({CLANG_ARG_LIST}\)|\1 --hip-device-lib-path=%{_libdir}/amdgcn/bitcode|" \
 	src/image/blit_src/CMakeLists.txt \
 	src/core/runtime/trap_handler/CMakeLists.txt
-%endif
 
 %build
 %cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
