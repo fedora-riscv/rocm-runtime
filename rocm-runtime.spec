@@ -8,7 +8,7 @@
 
 Name:       rocm-runtime
 Version:    %{rocm_version}
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -57,17 +57,13 @@ sed -i "s|\({CLANG_ARG_LIST}\)|\1 --hip-device-lib-path=%{_libdir}/amdgcn/bitcod
 %build
 %cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_LIBDIR=%{_lib} \
+    -DINCLUDE_PATH_COMPATIBILITY=OFF \
     %{?!enableimage:-DIMAGE_SUPPORT=OFF}
 %cmake_build
 
 
 %install
 %cmake_install
-
-# We install this via license macro instead:
-rm %{buildroot}%{_docdir}/hsa-runtime64/LICENSE.md
-
-rm -rf %{buildroot}/usr/hsa
 
 %ldconfig_scriptlets
 
@@ -76,6 +72,7 @@ rm -rf %{buildroot}/usr/hsa
 %license LICENSE.txt
 %{_libdir}/libhsa-runtime64.so.1
 %{_libdir}/libhsa-runtime64.so.1.7.0
+%exclude %{_docdir}/hsa-runtime64/LICENSE.md
 
 %files devel
 %{_includedir}/hsa/
@@ -83,6 +80,9 @@ rm -rf %{buildroot}/usr/hsa
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Tue Oct 04 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.3.0-2
+- Fix cmake path bug
+
 * Tue Oct 04 2022 Jeremy Newton <alexjnewt at hotmail dot com> - 5.3.0-1
 - Update to 5.3.0
 
