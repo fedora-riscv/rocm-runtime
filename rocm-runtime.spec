@@ -8,7 +8,7 @@
 
 Name:       rocm-runtime
 Version:    %{rocm_version}
-Release:    4%{?dist}
+Release:    5%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
@@ -80,7 +80,7 @@ sed -i "s|\({CLANG_ARG_LIST}\)|\1 --hip-device-lib-path=%{_libdir}/amdgcn/bitcod
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
-* Wed Apr 19 2023 Jeremy Newton <alexjnewt at hotmail dot com> - 5.4.1-4
+* Wed Apr 19 2023 Jeremy Newton <alexjnewt at hotmail dot com> - 5.4.1-5
 - Rebuild against 16.1 rocm-device-libs
 
 * Mon Apr 10 2023 Jeremy Newton <alexjnewt at hotmail dot com> - 5.4.1-3
