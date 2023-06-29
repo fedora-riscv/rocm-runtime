@@ -50,6 +50,9 @@ ROCm Runtime development files
 
 %prep
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
+%ifarch aarch64 ppc64le
+sed -i "s/-mmwaitx//" src/CMakeLists.txt
+%endif
 
 %build
 %cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
