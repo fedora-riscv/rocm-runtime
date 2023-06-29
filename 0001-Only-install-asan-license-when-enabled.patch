@@ -1,0 +1,29 @@
+From e21bdcd43cb1b2bd6039dfc80fe2d6f2b3c9f33c Mon Sep 17 00:00:00 2001
+From: Jeremy Newton <Jeremy.Newton@amd.com>
+Date: Thu, 29 Jun 2023 10:20:04 -0400
+Subject: [PATCH] Only install asan license when enabled
+
+Change-Id: I7b2aad1042846401d7422ca499ef6912f49f6b50
+Signed-off-by: Jeremy Newton <Jeremy.Newton@amd.com>
+---
+ src/CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e65f7abd..9adf455a 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -304,7 +304,9 @@ install ( TARGETS ${CORE_RUNTIME_TARGET}
+   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT asan )
+ 
+ # Install license
+-install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION ${CMAKE_INSTALL_DOCDIR}-asan COMPONENT asan )
++if(ENABLE_ASAN_PACKAGING)
++   install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION ${CMAKE_INSTALL_DOCDIR}-asan COMPONENT asan )
++endif()
+ install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT binary )
+ 
+ # Install public headers
+-- 
+2.40.1
+

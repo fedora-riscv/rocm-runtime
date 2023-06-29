@@ -1,24 +1,25 @@
-From 5ee5974602b0cd19ebb76c32b718538a328ceb0f Mon Sep 17 00:00:00 2001
+From acd443db9940fe0afb7fad7e14e1ae6cb039d0a2 Mon Sep 17 00:00:00 2001
 From: Philipp Knechtges <philipp-dev@knechtges.com>
 Date: Tue, 24 Nov 2020 21:28:25 +0100
-Subject: [PATCH 2/2] fix link-time ordering condition
+Subject: [PATCH] fix link-time ordering condition
 
 This fixes a segfault error in cases where the linking order of
 compilation unit varies. Reason behind the segfault is that one
 global variable in one compilation unit depends on another global
-variable in another compilation unit, but there is no gurantee that
+variable in another compilation unit, but there is no guarantee that
 this other compilation unit is initialized first. The fix forces a
 reinitialization at the first invocation of the library.
+
 ---
  src/core/common/hsa_table_interface.cpp | 10 +++++++++-
  1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/src/core/common/hsa_table_interface.cpp b/src/core/common/hsa_table_interface.cpp
-index 11b1e49..6f8c3ed 100644
+diff --git a/opensrc/hsa-runtime/core/common/hsa_table_interface.cpp b/opensrc/hsa-runtime/core/common/hsa_table_interface.cpp
+index 3802ae9b..593ccb38 100644
 --- a/src/core/common/hsa_table_interface.cpp
 +++ b/src/core/common/hsa_table_interface.cpp
-@@ -64,7 +64,15 @@ class Init {
- static Init LinkAtLoadOrFirstTranslationUnitAccess;
+@@ -58,7 +58,15 @@ const HsaApiTable* hsa_table_interface_get_table() {
+ }
  
  // Pass through stub functions
 -hsa_status_t HSA_API hsa_init() { return coreApiTable->hsa_init_fn(); }
@@ -35,5 +36,5 @@ index 11b1e49..6f8c3ed 100644
  hsa_status_t HSA_API hsa_shut_down() { return coreApiTable->hsa_shut_down_fn(); }
  
 -- 
-2.28.0
+2.40.1
 
