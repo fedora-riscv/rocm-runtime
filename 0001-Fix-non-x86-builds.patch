@@ -1,0 +1,169 @@
+From 0652c514b42721fa592291701fb451ecec62476a Mon Sep 17 00:00:00 2001
+From: Jeremy Newton <Jeremy.Newton@amd.com>
+Date: Fri, 30 Jun 2023 00:09:07 -0400
+Subject: [PATCH] Fix non-x86 builds
+
+I've just reverted some code what it was in 5.5 by wrapping new x86
+specific bits with #if's, e.g.:
+- CPUID is x86 specific
+- mwait is x86 specific
+
+Change-Id: I6cefae34282c777c7340daf3f934d2a11742502e
+Signed-off-by: Jeremy Newton <Jeremy.Newton@amd.com>
+---
+ src/CMakeLists.txt                    |  7 ++++++-
+ src/core/runtime/default_signal.cpp   | 12 +++++++++---
+ src/core/runtime/interrupt_signal.cpp | 11 ++++++++++-
+ src/core/util/lnx/os_linux.cpp        |  7 ++++++-
+ 4 files changed, 31 insertions(+), 6 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 8e26777..85aff15 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -129,7 +129,12 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+ set_property(TARGET ${CORE_RUNTIME_TARGET} PROPERTY INSTALL_RPATH "$ORIGIN;$ORIGIN/../../lib;$ORIGIN/../../lib64;$ORIGIN/../lib64" )
+ 
+ ## ------------------------- Linux Compiler and Linker options -------------------------
+-set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function -mmwaitx )
++set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
++
++## Extra x86 specific settings
++if ( CMAKE_SYSTEM_PROCESSOR MATCHES "i?86|x86_64|amd64|AMD64" )
++  set ( HSA_CXX_FLAGS ${HSA_CXX_FLAGS} -mmwaitx )
++endif()
+ 
+ ## Extra image settings - audit!
+ set ( HSA_CXX_FLAGS ${HSA_CXX_FLAGS} -Wno-deprecated-declarations )
+diff --git a/src/core/runtime/default_signal.cpp b/src/core/runtime/default_signal.cpp
+index bd2f7cf..820fc75 100644
+--- a/src/core/runtime/default_signal.cpp
++++ b/src/core/runtime/default_signal.cpp
+@@ -42,9 +42,11 @@
+ 
+ #include "core/inc/default_signal.h"
+ #include "core/util/timer.h"
+-#include <mwaitxintrin.h>
+ 
++#if defined(__i386__) || defined(__x86_64__)
++#include <mwaitxintrin.h>
+ #define MWAITX_ECX_TIMER_ENABLE 0x2  // BIT(1)
++#endif
+ 
+ namespace rocr {
+ namespace core {
+@@ -103,7 +105,9 @@ hsa_signal_value_t BusyWaitSignal::WaitRelaxed(hsa_signal_condition_t condition,
+       timer::duration_from_seconds<timer::fast_clock::duration>(
+           double(timeout) / double(hsa_freq));
+ 
++#if defined(__i386__) || defined(__x86_64__)
+   if (g_use_mwaitx) _mm_monitorx(const_cast<int64_t*>(&signal_.value), 0, 0);
++#endif
+ 
+   while (true) {
+     if (!IsValid()) return 0;
+@@ -138,11 +142,13 @@ hsa_signal_value_t BusyWaitSignal::WaitRelaxed(hsa_signal_condition_t condition,
+       return hsa_signal_value_t(value);
+     }
+ 
+-    if (time - start_time > kMaxElapsed)
++    if (time - start_time > kMaxElapsed) {
+       os::uSleep(20);
+-    else if (g_use_mwaitx) {
++#if defined(__i386__) || defined(__x86_64__)
++    } else if (g_use_mwaitx) {
+       _mm_mwaitx(0, 60000, MWAITX_ECX_TIMER_ENABLE);  // 60000 ~20us on a 1.5Ghz CPU
+       _mm_monitorx(const_cast<int64_t*>(&signal_.value), 0, 0);
++#endif
+     }
+   }
+ }
+diff --git a/src/core/runtime/interrupt_signal.cpp b/src/core/runtime/interrupt_signal.cpp
+index 773bbff..9a5b540 100644
+--- a/src/core/runtime/interrupt_signal.cpp
++++ b/src/core/runtime/interrupt_signal.cpp
+@@ -44,9 +44,11 @@
+ #include "core/inc/runtime.h"
+ #include "core/util/timer.h"
+ #include "core/util/locks.h"
+-#include <mwaitxintrin.h>
+ 
++#if defined(__i386__) || defined(__x86_64__)
++#include <mwaitxintrin.h>
+ #define MWAITX_ECX_TIMER_ENABLE 0x2  // BIT(1)
++#endif
+ 
+ namespace rocr {
+ namespace core {
+@@ -165,7 +167,10 @@ hsa_signal_value_t InterruptSignal::WaitRelaxed(
+           double(timeout) / double(hsa_freq));
+ 
+   bool condition_met = false;
++
++#if defined(__i386__) || defined(__x86_64__)
+   if (g_use_mwaitx) _mm_monitorx(const_cast<int64_t*>(&signal_.value), 0, 0);
++#endif
+ 
+   while (true) {
+     if (!IsValid()) return 0;
+@@ -201,19 +206,23 @@ hsa_signal_value_t InterruptSignal::WaitRelaxed(
+     }
+ 
+     if (wait_hint == HSA_WAIT_STATE_ACTIVE) {
++#if defined(__i386__) || defined(__x86_64__)
+       if (g_use_mwaitx) {
+         _mm_mwaitx(0, 0, 0);
+         _mm_monitorx(const_cast<int64_t*>(&signal_.value), 0, 0);
+       }
++#endif
+       continue;
+     }
+ 
+     if (time - start_time < kMaxElapsed) {
+       //  os::uSleep(20);
++#if defined(__i386__) || defined(__x86_64__)
+       if (g_use_mwaitx) {
+         _mm_mwaitx(0, 60000, MWAITX_ECX_TIMER_ENABLE);
+         _mm_monitorx(const_cast<int64_t*>(&signal_.value), 0, 0);
+       }
++#endif
+       continue;
+     }
+ 
+diff --git a/src/core/util/lnx/os_linux.cpp b/src/core/util/lnx/os_linux.cpp
+index 838b619..3c6cec2 100644
+--- a/src/core/util/lnx/os_linux.cpp
++++ b/src/core/util/lnx/os_linux.cpp
+@@ -60,7 +60,9 @@
+ #include <string>
+ #include <utility>
+ #include "core/inc/runtime.h"
++#if defined(__i386__) || defined(__x86_64__)
+ #include <cpuid.h>
++#endif
+ 
+ namespace rocr {
+ namespace os {
+@@ -645,8 +647,8 @@ uint64_t SystemClockFrequency() {
+ }
+ 
+ bool ParseCpuID(cpuid_t* cpuinfo) {
++#if defined(__i386__) || defined(__x86_64__)
+   uint32_t eax, ebx, ecx, edx, max_eax = 0;
+-
+   memset(cpuinfo, 0, sizeof(*cpuinfo));
+ 
+   /* Make sure current CPU supports at least EAX 4 */
+@@ -665,6 +667,9 @@ bool ParseCpuID(cpuid_t* cpuinfo) {
+     }
+   }
+   return true;
++#else
++  return false;
++#endif
+ }
+ 
+ }   //  namespace os
+-- 
+2.40.1
+
