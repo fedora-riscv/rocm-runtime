@@ -8,14 +8,14 @@
 
 Name:       rocm-runtime
 Version:    %{rocm_version}
-Release:    3%{?dist}
+Release:    4%{?dist}
 Summary:    ROCm Runtime Library
 
 License:    NCSA
 URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
 Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
-ExclusiveArch:  x86_64 aarch64 ppc64le
+ExclusiveArch:  x86_64 aarch64 ppc64le riscv64
 
 BuildRequires:  clang-devel
 BuildRequires:  cmake
@@ -73,6 +73,9 @@ ROCm Runtime development files
 %{_libdir}/cmake/hsa-runtime64/
 
 %changelog
+* Thu Mar 21 2024 Jiasheng Zhao <JasenChao@gmail.com> - 6.0.0-4
+- Add riscv64 support
+
 * Fri Jan 26 2024 Fedora Release Engineering <releng@fedoraproject.org> - 6.0.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
 
